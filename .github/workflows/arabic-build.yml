@@ -1,0 +1,28 @@
+# Personal build of the arabic-interface work for Windows (x64). Not part of the pull request.
+name: Arabic Windows build
+
+on:
+  push:
+    branches: [arabic-build]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build WordCraft
+        run: cargo build --release --locked -p wordcraft
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item target/release/wordcraft.exe out/WordCraft-Arabic.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WordCraft-Arabic-Windows-x64
+          path: out/WordCraft-Arabic.exe
+          retention-days: 30
