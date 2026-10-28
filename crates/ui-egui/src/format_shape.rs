@@ -103,9 +103,9 @@ pub fn pane(app: &mut WordApp, ui: &mut Ui) {
         Some(Fill::Gradient(_)) => 2,
     };
     let mut pick = kind;
-    ui.radio_value(&mut pick, 0, tl!("No fill"));
-    ui.radio_value(&mut pick, 1, tl!("Solid fill"));
-    ui.radio_value(&mut pick, 2, tl!("Gradient fill"));
+    crate::rtl::radio_value(ui, &mut pick, 0, tl!("No fill"));
+    crate::rtl::radio_value(ui, &mut pick, 1, tl!("Solid fill"));
+    crate::rtl::radio_value(ui, &mut pick, 2, tl!("Gradient fill"));
     if pick != kind {
         let accent1 = theme.get(4).copied().unwrap_or(Rgb(68, 114, 196));
         let main = fill.as_ref().map_or(accent1, Fill::main_color);
@@ -216,7 +216,7 @@ fn kind_of(t: usize, focus: [f32; 4], angle: f32, scaled: bool) -> GradientKind 
 /// add and remove, and the selected stop's colour, position, transparency and rotate-with-shape
 /// controls.
 fn gradient(app: &mut WordApp, ui: &mut Ui, theme: &[Rgb], g: &Gradient) {
-    egui::Grid::new("format_shape.gradient").num_columns(2).spacing(vec2(8.0, 6.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("format_shape.gradient").num_columns(2).spacing(vec2(8.0, 6.0)), |ui| {
         ui.label(tl!("Preset gradients"));
         ui.menu_button("▾", |ui| {
             if let Some(f) = presets_gallery(ui, theme) {
@@ -312,7 +312,7 @@ fn gradient(app: &mut WordApp, ui: &mut Ui, theme: &[Rgb], g: &Gradient) {
         apply(app, ui, Some(&set(GradStop { transparency: t, ..stop })), Some(&r));
     }
     let mut rot = g.rot_with_shape;
-    if ui.checkbox(&mut rot, tl!("Rotate with shape")).changed() {
+    if crate::rtl::checkbox(ui, &mut rot, tl!("Rotate with shape")).changed() {
         apply(app, ui, Some(&with(g, |g| g.rot_with_shape = rot)), None);
     }
 }
@@ -394,7 +394,7 @@ fn stops_bar(app: &mut WordApp, ui: &mut Ui, g: &Gradient, sel: usize) {
 fn presets_gallery(ui: &mut Ui, theme: &[Rgb]) -> Option<Fill> {
     let presets = shape_fill::presets(theme);
     let mut out = None;
-    egui::Grid::new("format_shape.presets").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("format_shape.presets").spacing(vec2(4.0, 4.0)), |ui| {
         for (i, f) in presets.iter().enumerate() {
             let style = shape_fill::PRESET_STYLES.get(i / 6).copied().unwrap_or("");
             let name = format!("{}, {} {}", tl!(style), tl!("Accent"), i % 6 + 1);
@@ -418,7 +418,7 @@ fn directions(ui: &mut Ui, g: &Gradient, t: usize) -> Option<GradientKind> {
         PATH_DIRECTIONS.iter().map(|&f| (kind_of(t, f, 90.0, true), shape_fill::path_direction_name(f))).collect()
     };
     let mut out = None;
-    egui::Grid::new("format_shape.directions").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("format_shape.directions").spacing(vec2(4.0, 4.0)), |ui| {
         for (i, (k, name)) in kinds.into_iter().enumerate() {
             let f = with(g, |g| set_kind(g, k));
             if swatch(ui, &f, &name) {

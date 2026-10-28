@@ -586,8 +586,31 @@ pub fn font_definitions_language(prefer_hans: bool, prefer_korean: bool, system_
     }
     #[cfg(target_arch = "wasm32")]
     let _ = system_cjk;
+    // Arabic-script faces last: the Arabic interface, its name in the language list, Arabic file
+    // names. Without an embedded one (a build without craft-fonts), an installed font, read on
+    // the same occasions as the installed CJK font.
+    let arabic = wordcraft_fonts::ui_arabic_fonts();
+    for f in &arabic {
+        add_cjk(&mut fonts, format!("{} {}", f.family, f.style), FontData::from_static(f.bytes));
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if system_cjk
+        && arabic.is_empty()
+        && let Some(f) = system_arabic_font()
+    {
+        let mut data = FontData::from_static(&f.bytes);
+        data.index = f.index;
+        add_cjk(&mut fonts, format!("system {}", f.family), data);
+    }
     // Symbols and emoji fall back to egui's defaults (kept in the families).
     fonts
+}
+
+/// The installed Arabic interface font, read once.
+#[cfg(not(target_arch = "wasm32"))]
+fn system_arabic_font() -> Option<&'static wordcraft_fonts::SystemUiFont> {
+    static ARABIC: std::sync::OnceLock<Option<wordcraft_fonts::SystemUiFont>> = std::sync::OnceLock::new();
+    ARABIC.get_or_init(wordcraft_fonts::system_arabic_ui_font).as_ref()
 }
 
 /// The installed CJK interface font for a Chinese (`hans`) or other interface, chosen once:

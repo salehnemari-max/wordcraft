@@ -70,7 +70,7 @@ pub struct LangInfo {
 
 /// The languages WordCraft offers, when their catalogs are embedded. English first: it is the
 /// fallback and the source language.
-pub static LANGUAGES: [LangInfo; 27] = [
+pub static LANGUAGES: [LangInfo; 28] = [
     LangInfo { code: "en", prefer_hans: false, editing_lang: None },
     // Simplified Chinese; `zh`, `zh-CN`, `zh-SG` and `zh-Hans-*` resolve here (the crate's matching).
     LangInfo { code: "zh-hans", prefer_hans: true, editing_lang: None },
@@ -124,9 +124,17 @@ pub static LANGUAGES: [LangInfo; 27] = [
     LangInfo { code: "da", prefer_hans: false, editing_lang: None },
     // Romanian; `ro`, `ro-RO`, `ro_RO.UTF-8` and `ro-MD` resolve here.
     LangInfo { code: "ro", prefer_hans: false, editing_lang: None },
+    // Arabic (Modern Standard); `ar` and every `ar-*` locale (`ar-MA`, `ar-EG`, `ar-SA` …) resolve
+    // here. Right to left: see [`RTL_LANGUAGES`] and [`Lang::rtl`].
+    LangInfo { code: "ar", prefer_hans: false, editing_lang: None },
     // Slovenian; `sl`, `sl-SI` and `sl_SI.UTF-8` resolve here.
     LangInfo { code: "sl", prefer_hans: false, editing_lang: None },
 ];
+
+/// Interface languages written right to left. Their catalogs are written in typing order and
+/// egui's text layout orders each line itself, so the lookups return them as they are; the window
+/// is mirrored ([`crate::rtl`]).
+const RTL_LANGUAGES: [&str; 1] = ["ar"];
 
 /// A language the UI can be shown in: English, or an offered language whose catalogs are embedded.
 #[derive(Clone, Copy)]
@@ -169,6 +177,12 @@ impl Lang {
     /// The language's name in itself (its `@id language.name` row), shown in the Options dropdown.
     pub fn name(self) -> &'static str {
         self.i18n().name(self.lang)
+    }
+
+    /// Whether the interface is written right to left. Its translations come back from the lookups
+    /// as written, in typing order (see [`RTL_LANGUAGES`]).
+    pub fn rtl(self) -> bool {
+        RTL_LANGUAGES.contains(&self.code())
     }
 
     pub fn prefers_hans(self) -> bool {
@@ -409,9 +423,11 @@ pub fn builtin_style_name(name: &str) -> String {
     name.to_string()
 }
 
-/// A ribbon location (`Home › Font`) in the current language, segment by segment.
+/// A ribbon location (`Home › Font`) in the current language, segment by segment. A
+/// right-to-left language reads it from the right, so the mark points left.
 pub fn location(loc: &str) -> String {
-    loc.split(" › ").map(t).collect::<Vec<_>>().join(" › ")
+    let segments: Vec<&str> = loc.split(" › ").map(t).collect();
+    segments.join(if current().rtl() { " ‹ " } else { " › " })
 }
 
 /// A label with an action after a fixed English prefix, e.g. `Undo Typing`: both parts translated

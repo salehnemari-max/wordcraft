@@ -68,18 +68,18 @@ pub(super) fn index_ui(app: &mut WordApp, ui: &mut Ui, f: &mut IndexForm) -> Nex
     };
     sample(ui, &lines, f.right_align, leader_char(&f.leader));
     ui.add_space(6.0);
-    egui::Grid::new("idx").num_columns(2).spacing(vec2(10.0, 6.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("idx").num_columns(2).spacing(vec2(10.0, 6.0)), |ui| {
         ui.label(tl!("Type:"));
         ui.horizontal(|ui| {
-            ui.radio_value(&mut f.kind, "indented".to_string(), tl!("Indented"));
-            ui.radio_value(&mut f.kind, "runIn".to_string(), tl!("Run-in"));
+            crate::rtl::radio_value(ui, &mut f.kind, "indented".to_string(), tl!("Indented"));
+            crate::rtl::radio_value(ui, &mut f.kind, "runIn".to_string(), tl!("Run-in"));
         });
         ui.end_row();
         let columns_label = ui.label(tl!("Columns:"));
         ui.add(egui::DragValue::new(&mut f.columns).range(1..=4)).labelled_by(columns_label.id);
         ui.end_row();
         ui.label("");
-        ui.checkbox(&mut f.right_align, tl!("Page numbers at the right margin"));
+        crate::rtl::checkbox(ui, &mut f.right_align, tl!("Page numbers at the right margin"));
         ui.end_row();
         let leader_label = ui.label(tl!("Tab leader:"));
         ui.add_enabled_ui(f.right_align, |ui| {
@@ -88,7 +88,7 @@ pub(super) fn index_ui(app: &mut WordApp, ui: &mut Ui, f: &mut IndexForm) -> Nex
         });
         ui.end_row();
         ui.label("");
-        ui.checkbox(&mut f.headings, tl!("Letter headings"));
+        crate::rtl::checkbox(ui, &mut f.headings, tl!("Letter headings"));
         ui.end_row();
     });
     ui.add_space(4.0);
@@ -153,7 +153,7 @@ impl MarkForm {
 /// and Mark All running `references.markEntry`.
 pub(super) fn mark_ui(app: &mut WordApp, ui: &mut Ui, f: &mut MarkForm) -> Next {
     heading(ui, "Index");
-    egui::Grid::new("xe").num_columns(2).spacing(vec2(10.0, 6.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("xe").num_columns(2).spacing(vec2(10.0, 6.0)), |ui| {
         let entry_label = ui.label(tl!("Main entry:"));
         ui.add(egui::TextEdit::singleline(&mut f.entry).desired_width(220.0)).labelled_by(entry_label.id);
         ui.end_row();
@@ -163,13 +163,14 @@ pub(super) fn mark_ui(app: &mut WordApp, ui: &mut Ui, f: &mut MarkForm) -> Next 
     });
     heading(ui, "Options");
     ui.horizontal(|ui| {
-        let see_label = ui.radio_value(&mut f.option, "see".to_string(), tl!("Cross-reference:"));
+        let see_label = crate::rtl::radio_value(ui, &mut f.option, "see".to_string(), tl!("Cross-reference:"));
         ui.add_enabled(f.option == "see", egui::TextEdit::singleline(&mut f.see).desired_width(160.0)).labelled_by(see_label.id);
     });
-    ui.radio_value(&mut f.option, "page".to_string(), tl!("This page"));
+    crate::rtl::radio_value(ui, &mut f.option, "page".to_string(), tl!("This page"));
     ui.horizontal(|ui| {
-        let bookmark_label =
-            ui.add_enabled_ui(!f.bookmarks.is_empty(), |ui| ui.radio_value(&mut f.option, "range".to_string(), tl!("Pages of bookmark:"))).inner;
+        let bookmark_label = ui
+            .add_enabled_ui(!f.bookmarks.is_empty(), |ui| crate::rtl::radio_value(ui, &mut f.option, "range".to_string(), tl!("Pages of bookmark:")))
+            .inner;
         ui.add_enabled_ui(f.option == "range", |ui| {
             let opts: Vec<(String, &str)> = f.bookmarks.iter().map(|b| (b.clone(), b.as_str())).collect();
             let combo = craft_ui::ComboBox::from_id_salt("xe_bm").selected_text(f.bookmark.clone()).width(140.0).show_ui(ui, |ui| {
@@ -182,8 +183,8 @@ pub(super) fn mark_ui(app: &mut WordApp, ui: &mut Ui, f: &mut MarkForm) -> Next 
     });
     heading(ui, "Page number style");
     ui.horizontal(|ui| {
-        ui.checkbox(&mut f.bold, tl!("Bold"));
-        ui.checkbox(&mut f.italic, tl!("Italic"));
+        crate::rtl::checkbox(ui, &mut f.bold, tl!("Bold"));
+        crate::rtl::checkbox(ui, &mut f.italic, tl!("Italic"));
     });
     if !f.message.is_empty() {
         ui.label(egui::RichText::new(&f.message).small());
@@ -191,7 +192,7 @@ pub(super) fn mark_ui(app: &mut WordApp, ui: &mut Ui, f: &mut MarkForm) -> Next 
     let mut close = false;
     ui.add_space(8.0);
     ui.horizontal(|ui| {
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
             if ui.button(tl!("Close")).clicked() || ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                 close = true;
             }

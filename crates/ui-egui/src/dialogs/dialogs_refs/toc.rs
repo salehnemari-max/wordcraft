@@ -100,9 +100,9 @@ pub(super) fn toc_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TocForm) -> Next {
         .collect();
     sample(ui, &lines, f.right_align, leader_char(&f.leader));
     ui.add_space(6.0);
-    ui.checkbox(&mut f.page_numbers, tl!("Include page numbers"));
+    crate::rtl::checkbox(ui, &mut f.page_numbers, tl!("Include page numbers"));
     ui.add_enabled_ui(f.page_numbers, |ui| {
-        ui.checkbox(&mut f.right_align, tl!("Page numbers at the right margin"));
+        crate::rtl::checkbox(ui, &mut f.right_align, tl!("Page numbers at the right margin"));
         ui.horizontal(|ui| {
             let leader_label = ui.label(tl!("Tab leader:"));
             ui.add_enabled_ui(f.right_align, |ui| {
@@ -111,7 +111,7 @@ pub(super) fn toc_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TocForm) -> Next {
             });
         });
     });
-    ui.checkbox(&mut f.hyperlinks, tl!("Link entries to their headings"));
+    crate::rtl::checkbox(ui, &mut f.hyperlinks, tl!("Link entries to their headings"));
     ui.horizontal(|ui| {
         let levels_label = ui.label(tl!("Levels:"));
         ui.add(egui::DragValue::new(&mut f.levels).range(1..=9)).labelled_by(levels_label.id);
@@ -140,12 +140,12 @@ pub(super) fn toc_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TocForm) -> Next {
 /// fields, with Reset. OK returns the edited form and Cancel the original.
 pub(super) fn toc_options_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TocForm, was: &TocForm) -> Next {
     heading(ui, "Collect entries from:");
-    ui.checkbox(&mut f.heading_styles, crate::i18n::fmt(tl!("Heading styles (levels 1–{n})"), &[("n", &f.levels.to_string())]));
+    crate::rtl::checkbox(ui, &mut f.heading_styles, crate::i18n::fmt(tl!("Heading styles (levels 1–{n})"), &[("n", &f.levels.to_string())]));
     ui.label(tl!("Other styles and their TOC level:"));
     // A solid scroll bar takes its own room beside the list instead of floating over the level boxes.
     ui.spacing_mut().scroll = egui::style::ScrollStyle::solid();
     egui::ScrollArea::vertical().max_height(180.0).show(ui, |ui| {
-        egui::Grid::new("toc_styles").num_columns(2).spacing(vec2(10.0, 3.0)).show(ui, |ui| {
+        crate::rtl::grid(ui, egui::Grid::new("toc_styles").num_columns(2).spacing(vec2(10.0, 3.0)), |ui| {
             for (name, level) in f.style_levels.iter_mut() {
                 // Built-in styles read in the interface language; the document keeps the English name.
                 let shown = app.session.doc.styles.styles.iter().find(|st| st.name == *name).map_or_else(|| name.clone(), crate::i18n::style_name);
@@ -156,8 +156,8 @@ pub(super) fn toc_options_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TocForm, wa
             }
         });
     });
-    ui.checkbox(&mut f.outline_levels, tl!("Outline levels"));
-    ui.checkbox(&mut f.tc_fields, tl!("TC entry fields"));
+    crate::rtl::checkbox(ui, &mut f.outline_levels, tl!("Outline levels"));
+    crate::rtl::checkbox(ui, &mut f.tc_fields, tl!("TC entry fields"));
     ui.add_space(4.0);
     if ui.button(tl!("Reset")).clicked() {
         f.heading_styles = true;
@@ -263,10 +263,10 @@ pub(super) fn figures_ui(app: &mut WordApp, ui: &mut Ui, f: &mut FiguresForm) ->
         });
         combo.response.labelled_by(label_label.id);
     });
-    ui.checkbox(&mut f.include_label, tl!("Include label and number"));
-    ui.checkbox(&mut f.page_numbers, tl!("Include page numbers"));
+    crate::rtl::checkbox(ui, &mut f.include_label, tl!("Include label and number"));
+    crate::rtl::checkbox(ui, &mut f.page_numbers, tl!("Include page numbers"));
     ui.add_enabled_ui(f.page_numbers, |ui| {
-        ui.checkbox(&mut f.right_align, tl!("Page numbers at the right margin"));
+        crate::rtl::checkbox(ui, &mut f.right_align, tl!("Page numbers at the right margin"));
         ui.horizontal(|ui| {
             let leader_label = ui.label(tl!("Tab leader:"));
             ui.add_enabled_ui(f.right_align, |ui| {

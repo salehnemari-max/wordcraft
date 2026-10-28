@@ -12,6 +12,9 @@ pub fn group(ui: &mut Ui, title: &str, launcher: Option<&str>, app: &mut WordApp
 /// A ribbon group whose title is shown as is (a custom group's name, Customize Ribbon).
 pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&str>, app: &mut WordApp, add: impl FnOnce(&mut Ui, &mut WordApp)) {
     let t = Tokens::get(ui.ctx());
+    // Groups follow the ribbon's direction: in a right-to-left interface the content starts at
+    // the right, and the launcher and the divider sit on the left.
+    let rtl = crate::rtl::flows(ui);
     let start = ui.cursor().min;
     // #662: the window may be too narrow for the tab; the plan says how this group fits.
     let position = crate::ribbon_fit::position(ui.ctx());
@@ -22,10 +25,10 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
         // Not folded: a drop-down left open while it was folded doesn't come back by itself.
         ui.data_mut(|d| d.remove::<bool>(collapsed_open_id(ui, id_title, position)));
         let label_w = ui.ctx().fonts_mut(|f| f.layout_no_wrap(title.to_string(), regular(11.0), t.group_label).size().x);
-        let inner = ui.vertical(|ui| {
+        let inner = crate::rtl::vertical(ui, |ui| {
             ui.set_min_width(label_w + if launcher.is_some() { 22.0 } else { 10.0 });
             crate::ribbon_fit::set_compact(ui.ctx(), level == crate::ribbon_fit::COMPACT);
-            let content = ui.allocate_ui_with_layout(vec2(ui.available_width(), CONTENT_H), egui::Layout::left_to_right(egui::Align::Min), |ui| {
+            let content = ui.allocate_ui_with_layout(vec2(ui.available_width(), CONTENT_H), crate::rtl::row_layout(ui, egui::Align::Min), |ui| {
                 ui.spacing_mut().item_spacing = vec2(1.0, 1.0);
                 add(ui, app);
             });
@@ -40,7 +43,7 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
         let r = inner.response.rect;
         title_row(
             ui,
-            Rect::from_min_max(pos2(start.x, start.y + CONTENT_H), pos2(r.max.x, start.y + CONTENT_H + LABEL_H)),
+            Rect::from_min_max(pos2(if rtl { r.min.x } else { start.x }, start.y + CONTENT_H), pos2(r.max.x, start.y + CONTENT_H + LABEL_H)),
             id_title,
             title,
             launcher,
@@ -48,7 +51,7 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
         );
     }
     ui.add_space(5.0);
-    let x = ui.cursor().min.x;
+    let x = if rtl { ui.cursor().max.x } else { ui.cursor().min.x };
     ui.painter().line_segment([pos2(x, start.y + 4.0), pos2(x, start.y + CONTENT_H + LABEL_H - 4.0)], Stroke::new(1.0, t.border));
     ui.add_space(6.0);
     crate::ribbon_fit::record(ui.ctx(), id_title, level, ui.cursor().min.x - start.x);
@@ -58,9 +61,10 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
 fn title_row(ui: &mut Ui, r: Rect, id_title: &str, title: &str, launcher: Option<&str>, app: &mut WordApp) {
     let t = Tokens::get(ui.ctx());
     let title_y = r.center().y;
+    let rtl = crate::rtl::flows(ui);
     ui.painter().text(pos2(r.center().x, title_y), Align2::CENTER_CENTER, title, regular(11.0), t.group_label);
     if let Some(cmd) = launcher {
-        let lr = Rect::from_center_size(pos2(r.max.x - 6.0, title_y), vec2(11.0, 11.0));
+        let lr = Rect::from_center_size(pos2(crate::rtl::trail_x(rtl, r, 6.0), title_y), vec2(11.0, 11.0));
         let resp = ui.interact(lr, ui.scope_id().with(("launch", id_title)), Sense::click());
         if resp.hovered() {
             ui.painter().rect_filled(lr.expand(2.0), 2.0, t.hover);
@@ -127,9 +131,9 @@ fn collapsed_group(
         // This popup isn't counted by `Popup::is_any_open`, so keep the same Esc from also leaving
         // full screen.
         app.escape_free = false;
-        egui::Popup::menu(&resp).open_bool(&mut shown).close_behavior(egui::PopupCloseBehavior::IgnoreClicks).show(|ui| {
-            ui.vertical(|ui| {
-                ui.horizontal_top(|ui| {
+        crate::rtl::menu(&resp).open_bool(&mut shown).close_behavior(egui::PopupCloseBehavior::IgnoreClicks).show(|ui| {
+            crate::rtl::vertical(ui, |ui| {
+                crate::rtl::horizontal_top(ui, |ui| {
                     ui.set_min_height(CONTENT_H);
                     ui.spacing_mut().item_spacing = vec2(1.0, 1.0);
                     add(ui, app);
@@ -193,7 +197,7 @@ pub fn command_icon(id: &str) -> &str {
 /// Right-click on a command's button: put it on (or take it off) the Quick Access Toolbar, or
 /// open Customize Ribbon (#379).
 pub fn command_menu(resp: &Response, app: &mut WordApp, id: &str) {
-    resp.context_menu(|ui| {
+    crate::rtl::context_menu(resp, |ui| {
         let known = app.session.registry.get(id).is_some();
         let on_qat = app.session.ribbon.qat().contains(&id);
         if known && !on_qat && ui.button(tl!("Add to Quick Access Toolbar")).clicked() {

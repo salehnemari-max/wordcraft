@@ -164,7 +164,7 @@ pub(super) fn size_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SizeForm) -> bool 
         (changed && v != was).then_some(v)
     };
     heading(ui, "Size");
-    egui::Grid::new("size_lengths").num_columns(4).spacing(vec2(10.0, 6.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("size_lengths").num_columns(4).spacing(vec2(10.0, 6.0)), |ui| {
         if let Some(h) = length(ui, "Height:", f.height) {
             f.set_height(h);
         }
@@ -175,7 +175,7 @@ pub(super) fn size_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SizeForm) -> bool 
     });
     heading(ui, "Scale");
     let (sw, sh) = f.scale();
-    egui::Grid::new("size_scale").num_columns(4).spacing(vec2(10.0, 6.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("size_scale").num_columns(4).spacing(vec2(10.0, 6.0)), |ui| {
         if let Some(p) = percent(ui, "Height:", sh) {
             f.set_scale_height(p);
         }
@@ -184,8 +184,8 @@ pub(super) fn size_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SizeForm) -> bool 
         }
         ui.end_row();
     });
-    ui.checkbox(&mut f.lock, tl!("Lock aspect ratio"));
-    ui.add_enabled(f.original.is_some(), egui::Checkbox::new(&mut f.relative, tl!("Relative to original picture size")));
+    crate::rtl::checkbox(ui, &mut f.lock, tl!("Lock aspect ratio"));
+    ui.add_enabled_ui(f.original.is_some(), |ui| crate::rtl::checkbox(ui, &mut f.relative, tl!("Relative to original picture size")));
     if let Some((w, h)) = f.uncropped {
         heading(ui, "Original size");
         ui.horizontal(|ui| {
@@ -267,9 +267,9 @@ pub(super) fn page_numbers_ui(app: &mut WordApp, ui: &mut Ui, f: &mut PageNumber
         }
     });
     heading(ui, "Page numbering");
-    ui.radio_value(&mut f.cont, true, tl!("Continue from previous section"));
+    crate::rtl::radio_value(ui, &mut f.cont, true, tl!("Continue from previous section"));
     ui.horizontal(|ui| {
-        ui.radio_value(&mut f.cont, false, tl!("Start at:"));
+        crate::rtl::radio_value(ui, &mut f.cont, false, tl!("Start at:"));
         ui.add_enabled(!f.cont, egui::DragValue::new(&mut f.start).range(1..=100_000));
     });
     let (ok, cancel) = buttons(ui, "OK", true);

@@ -126,15 +126,15 @@ pub(super) fn sort_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SortForm) -> bool 
                 ui.selectable_value(&mut f.column, i, label);
             }
         });
-        ui.vertical(|ui| {
-            ui.radio_value(&mut f.descending, false, tl!("Ascending"));
-            ui.radio_value(&mut f.descending, true, tl!("Descending"));
+        crate::rtl::vertical(ui, |ui| {
+            crate::rtl::radio_value(ui, &mut f.descending, false, tl!("Ascending"));
+            crate::rtl::radio_value(ui, &mut f.descending, true, tl!("Descending"));
         });
     });
     heading(ui, "My list has");
     ui.horizontal(|ui| {
-        ui.radio_value(&mut f.header, true, tl!("Header row"));
-        ui.radio_value(&mut f.header, false, tl!("No header row"));
+        crate::rtl::radio_value(ui, &mut f.header, true, tl!("Header row"));
+        crate::rtl::radio_value(ui, &mut f.header, false, tl!("No header row"));
     });
     let (ok, cancel) = buttons(ui, "OK", true);
     if ok {
@@ -253,7 +253,7 @@ fn alert(ui: &mut Ui, text: &Option<String>) {
 pub(super) fn split_cells_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SplitCellsForm) -> bool {
     // Several cells split one by one keep their rows.
     let rows_on = f.cells <= 1 || f.merge_first;
-    egui::Grid::new("split_cells").num_columns(2).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("split_cells").num_columns(2), |ui| {
         ui.label(tl!("Number of columns:"));
         ui.add(egui::DragValue::new(&mut f.columns).range(1..=63));
         ui.end_row();
@@ -262,7 +262,7 @@ pub(super) fn split_cells_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SplitCellsF
         ui.end_row();
     });
     let mut merge = f.merge_first;
-    if ui.add_enabled(f.several, egui::Checkbox::new(&mut merge, tl!("Merge cells before split"))).changed() {
+    if ui.add_enabled_ui(f.several, |ui| crate::rtl::checkbox(ui, &mut merge, tl!("Merge cells before split"))).inner.changed() {
         f.set_merge(merge);
     }
     alert(ui, &f.error);
@@ -379,7 +379,7 @@ impl TextToTableForm {
 pub(super) fn text_to_table_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TextToTableForm) -> bool {
     let before = (f.separator.clone(), f.other_char.clone(), f.columns);
     heading(ui, "Table size");
-    egui::Grid::new("text_to_table").num_columns(2).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("text_to_table").num_columns(2), |ui| {
         ui.label(tl!("Number of columns:"));
         ui.add(egui::DragValue::new(&mut f.columns).range(1..=63));
         ui.end_row();
@@ -389,19 +389,19 @@ pub(super) fn text_to_table_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TextToTab
     });
     heading(ui, "AutoFit behavior");
     ui.horizontal(|ui| {
-        ui.radio_value(&mut f.autofit, "initial".to_string(), tl!("Initial column width:"));
+        crate::rtl::radio_value(ui, &mut f.autofit, "initial".to_string(), tl!("Initial column width:"));
         ui.add_enabled(f.autofit == "initial", egui::TextEdit::singleline(&mut f.width).desired_width(72.0));
     });
-    ui.radio_value(&mut f.autofit, "contents".to_string(), tl!("AutoFit to contents"));
-    ui.radio_value(&mut f.autofit, "window".to_string(), tl!("AutoFit to window"));
+    crate::rtl::radio_value(ui, &mut f.autofit, "contents".to_string(), tl!("AutoFit to contents"));
+    crate::rtl::radio_value(ui, &mut f.autofit, "window".to_string(), tl!("AutoFit to window"));
     heading(ui, "Separate text at");
-    egui::Grid::new("text_to_table_sep").num_columns(2).show(ui, |ui| {
-        ui.radio_value(&mut f.separator, "paragraph".to_string(), tl!("Paragraphs"));
-        ui.radio_value(&mut f.separator, "comma".to_string(), tl!("Commas"));
+    crate::rtl::grid(ui, egui::Grid::new("text_to_table_sep").num_columns(2), |ui| {
+        crate::rtl::radio_value(ui, &mut f.separator, "paragraph".to_string(), tl!("Paragraphs"));
+        crate::rtl::radio_value(ui, &mut f.separator, "comma".to_string(), tl!("Commas"));
         ui.end_row();
-        ui.radio_value(&mut f.separator, "tab".to_string(), tl!("Tabs"));
+        crate::rtl::radio_value(ui, &mut f.separator, "tab".to_string(), tl!("Tabs"));
         ui.horizontal(|ui| {
-            ui.radio_value(&mut f.separator, "other".to_string(), tl!("Other:"));
+            crate::rtl::radio_value(ui, &mut f.separator, "other".to_string(), tl!("Other:"));
             let r = ui.add(egui::TextEdit::singleline(&mut f.other_char).char_limit(1).desired_width(24.0));
             if r.changed() {
                 f.separator = "other".into();
@@ -456,11 +456,11 @@ impl TableToTextForm {
 
 pub(super) fn table_to_text_ui(app: &mut WordApp, ui: &mut Ui, f: &mut TableToTextForm) -> bool {
     heading(ui, "Separate text with");
-    ui.radio_value(&mut f.separator, "paragraph".to_string(), tl!("Paragraph marks"));
-    ui.radio_value(&mut f.separator, "tab".to_string(), tl!("Tabs"));
-    ui.radio_value(&mut f.separator, "comma".to_string(), tl!("Commas"));
+    crate::rtl::radio_value(ui, &mut f.separator, "paragraph".to_string(), tl!("Paragraph marks"));
+    crate::rtl::radio_value(ui, &mut f.separator, "tab".to_string(), tl!("Tabs"));
+    crate::rtl::radio_value(ui, &mut f.separator, "comma".to_string(), tl!("Commas"));
     ui.horizontal(|ui| {
-        ui.radio_value(&mut f.separator, "other".to_string(), tl!("Other:"));
+        crate::rtl::radio_value(ui, &mut f.separator, "other".to_string(), tl!("Other:"));
         let r = ui.add(egui::TextEdit::singleline(&mut f.other_char).char_limit(1).desired_width(24.0));
         if r.changed() {
             f.separator = "other".into();

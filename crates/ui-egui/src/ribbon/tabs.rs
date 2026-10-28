@@ -86,7 +86,7 @@ pub(super) fn reading_toolbar(app: &mut WordApp, ui: &mut Ui, t: Tokens) {
                     let _ = app.run("view.navigationPane", json!({"value": true}));
                     app.ui.nav_tab = "headings".into();
                 }
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
                     if ui.button(tl!("Edit Document")).clicked() {
                         let _ = app.run("view.printLayout", json!({}));
                     }

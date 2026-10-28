@@ -264,9 +264,9 @@ fn merge_field_name(code: &str) -> String {
 pub(super) fn field_ui(app: &mut WordApp, ui: &mut Ui, f: &mut FieldForm) -> bool {
     let t = Tokens::get(ui.ctx());
     ui.set_width(620.0);
-    ui.horizontal_top(|ui| {
+    crate::rtl::horizontal_top(ui, |ui| {
         // Left: category and field names.
-        ui.vertical(|ui| {
+        crate::rtl::vertical(ui, |ui| {
             ui.set_width(200.0);
             ui.label(egui::RichText::new(tl!("Pick a field from the list")).font(semibold(12.5)));
             ui.label(tl!("Categories:"));
@@ -293,7 +293,7 @@ pub(super) fn field_ui(app: &mut WordApp, ui: &mut Ui, f: &mut FieldForm) -> boo
         });
         ui.add_space(14.0);
         // Right: the field's options, or its code.
-        ui.vertical(|ui| {
+        crate::rtl::vertical(ui, |ui| {
             ui.label(egui::RichText::new(tl!("Field properties")).font(semibold(12.5)));
             if let Some((_, _, desc)) = FIELDS.iter().find(|(n, _, _)| *n == f.name) {
                 ui.label(egui::RichText::new(format!("{} {}", tl!("Description:"), tl!(desc))).small().color(t.text_dim));
@@ -306,7 +306,7 @@ pub(super) fn field_ui(app: &mut WordApp, ui: &mut Ui, f: &mut FieldForm) -> boo
             } else {
                 field_options(ui, f, &t);
                 ui.add_space(4.0);
-                ui.checkbox(&mut f.preserve, tl!("Preserve formatting during updates"));
+                crate::rtl::checkbox(ui, &mut f.preserve, tl!("Preserve formatting during updates"));
             }
         });
     });
@@ -400,7 +400,7 @@ fn field_options(ui: &mut Ui, f: &mut FieldForm, t: &Tokens) {
             ui.add_space(4.0);
             for (c, label) in STYLEREF_SWITCHES {
                 let mut on = f.style_switches.contains(*c);
-                if ui.checkbox(&mut on, tl!(label)).changed() {
+                if crate::rtl::checkbox(ui, &mut on, tl!(label)).changed() {
                     f.style_switches.retain(|x| x != *c);
                     if on {
                         f.style_switches.push(*c);

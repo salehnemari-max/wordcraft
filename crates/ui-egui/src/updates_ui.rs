@@ -113,7 +113,7 @@ pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
                     ui.label(tl!("Checking for updates…"));
                 }
                 ui.add_space(8.0);
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
                     if ui.button(tl!("Close")).clicked() {
                         close = true;
                     }

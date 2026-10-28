@@ -149,7 +149,7 @@ impl SourceForm {
 /// Draws a source's type and fields, optionally every bibliography field, and adds it as a
 /// bibliography source or inserts a citation on OK.
 pub(super) fn source_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SourceForm) -> Next {
-    egui::Grid::new("src").num_columns(2).spacing(vec2(10.0, 5.0)).show(ui, |ui| {
+    crate::rtl::grid(ui, egui::Grid::new("src").num_columns(2).spacing(vec2(10.0, 5.0)), |ui| {
         let kind_label = ui.label(tl!("Source type:"));
         let shown = SOURCE_TYPES.iter().find(|(k, ..)| *k == f.source.kind).map(|(_, l, _)| tl!(l).to_string()).unwrap_or_default();
         let combo = craft_ui::ComboBox::from_id_salt("src_kind").selected_text(shown).width(200.0).show_ui(ui, |ui| {
@@ -174,7 +174,7 @@ pub(super) fn source_ui(app: &mut WordApp, ui: &mut Ui, f: &mut SourceForm) -> N
             ui.end_row();
         }
     });
-    ui.checkbox(&mut f.show_all, tl!("Show every bibliography field"));
+    crate::rtl::checkbox(ui, &mut f.show_all, tl!("Show every bibliography field"));
     let (ok, cancel) = buttons(ui, tl!("OK"));
     if ok {
         let src = serde_json::to_value(&f.source).unwrap_or(Value::Null);
@@ -256,7 +256,7 @@ pub(super) fn sources_ui(app: &mut WordApp, ui: &mut Ui, selected: &mut Option<u
     });
     ui.add_space(8.0);
     ui.horizontal(|ui| {
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
             if ui.button(tl!("Close")).clicked() || ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                 next = Next::Close;
             }
