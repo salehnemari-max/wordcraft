@@ -1,0 +1,37 @@
+# Personal Windows build of storytold/wordcraft#1195 for a native-speaker review. Not part of any pull request.
+name: Arabic preview build (wordcraft#1195)
+
+on:
+  push:
+    branches: [arabic-1195-preview]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: salehnemari-max/craft-i18n
+          ref: ar-preview
+          path: craft-i18n-src
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build WordCraft
+        shell: pwsh
+        run: |
+          $env:CRAFT_I18N_DIR = "$PWD/craft-i18n-src"
+          $env:CRAFT_I18N_REQUIRED = "1"
+          cargo build --release --locked -p wordcraft
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item target/release/wordcraft.exe out/WordCraft-Arabic-1195.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WordCraft-Arabic-1195-Windows-x64
+          path: out/WordCraft-Arabic-1195.exe
+          retention-days: 30
