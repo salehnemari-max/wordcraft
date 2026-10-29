@@ -316,7 +316,7 @@ pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
         .anchor(Align2::CENTER_CENTER, vec2(0.0, -20.0));
     let shown = crate::window_close::window(ctx, window).show(ctx, |ui| {
         ui.set_width(620.0);
-        done = body(ui, &mut b, &t);
+        done = crate::rtl::root(ui, |ui| body(ui, &mut b, &t));
     });
     if shown.is_some_and(|s| crate::window_close::show(ctx, &s.response, &t)) {
         done = Some(None);

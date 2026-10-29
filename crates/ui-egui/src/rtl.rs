@@ -173,8 +173,10 @@ pub fn checkbox(ui: &mut Ui, checked: &mut bool, text: impl Into<egui::WidgetTex
     }
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = ui.spacing().icon_spacing;
-        let mut mark = ui.checkbox(checked, "");
+        let mark = ui.checkbox(checked, "");
         let label = ui.add(egui::Label::new(text).selectable(false).sense(egui::Sense::click()));
+        // The mark is drawn without text so the label can sit beside it; the label names it.
+        let mut mark = mark.labelled_by(label.id);
         if label.clicked() {
             *checked = !*checked;
             mark.mark_changed();
@@ -191,8 +193,9 @@ pub fn radio_value<V: PartialEq>(ui: &mut Ui, current: &mut V, alternative: V, t
     }
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = ui.spacing().icon_spacing;
-        let mut mark = ui.radio(*current == alternative, "");
+        let mark = ui.radio(*current == alternative, "");
         let label = ui.add(egui::Label::new(text).selectable(false).sense(egui::Sense::click()));
+        let mut mark = mark.labelled_by(label.id);
         if (mark.clicked() || label.clicked()) && *current != alternative {
             *current = alternative;
             mark.mark_changed();
@@ -211,6 +214,7 @@ pub fn radio(ui: &mut Ui, selected: bool, text: impl Into<egui::WidgetText>) -> 
         ui.spacing_mut().item_spacing.x = ui.spacing().icon_spacing;
         let mark = ui.radio(selected, "");
         let label = ui.add(egui::Label::new(text).selectable(false).sense(egui::Sense::click()));
+        let mark = mark.labelled_by(label.id);
         mark.clicked() || label.clicked()
     })
     .inner
@@ -226,6 +230,7 @@ pub fn indeterminate_checkbox(ui: &mut Ui, text: &str) -> bool {
         ui.spacing_mut().item_spacing.x = ui.spacing().icon_spacing;
         let mark = ui.add(egui::Checkbox::new(&mut false, "").indeterminate(true));
         let label = ui.add(egui::Label::new(text).selectable(false).sense(egui::Sense::click()));
+        let mark = mark.labelled_by(label.id);
         mark.clicked() || label.clicked()
     })
     .inner

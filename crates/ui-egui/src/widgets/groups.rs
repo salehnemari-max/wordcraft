@@ -15,7 +15,8 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
     // Groups follow the ribbon's direction: in a right-to-left interface the content starts at
     // the right, and the launcher and the divider sit on the left.
     let rtl = crate::rtl::flows(ui);
-    let start = ui.cursor().min;
+    let start_cursor = ui.cursor();
+    let start = start_cursor.min;
     // #662: the window may be too narrow for the tab; the plan says how this group fits.
     let position = crate::ribbon_fit::position(ui.ctx());
     let level = crate::ribbon_fit::level(ui.ctx(), id_title);
@@ -54,7 +55,14 @@ pub fn group_titled(ui: &mut Ui, id_title: &str, title: &str, launcher: Option<&
     let x = if rtl { ui.cursor().max.x } else { ui.cursor().min.x };
     ui.painter().line_segment([pos2(x, start.y + 4.0), pos2(x, start.y + CONTENT_H + LABEL_H - 4.0)], Stroke::new(1.0, t.border));
     ui.add_space(6.0);
-    crate::ribbon_fit::record(ui.ctx(), id_title, level, ui.cursor().min.x - start.x);
+    crate::ribbon_fit::record(ui.ctx(), id_title, level, group_width(rtl, start_cursor, ui.cursor()));
+}
+
+/// The width a group took: the cursor's way along the row, from `before` to `after`. A
+/// right-to-left row fills from its right edge, where the cursor's left edge is negative infinity,
+/// so there the width is how far the right edge moved.
+fn group_width(rtl: bool, before: Rect, after: Rect) -> f32 {
+    if rtl { before.max.x - after.max.x } else { after.min.x - before.min.x }
 }
 
 /// A group's title row (`r`): the centred title and, with a `launcher`, its dialog launcher.
@@ -238,4 +246,22 @@ pub fn row(ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
         ui.spacing_mut().item_spacing = vec2(1.0, 0.0);
         add(ui);
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A right-to-left row's cursor reaches to negative infinity on the left, so the width of a
+    /// group in it comes from the right edge: finite and positive, as the ribbon planner needs.
+    #[test]
+    fn a_group_in_a_right_to_left_row_has_a_finite_width() {
+        let before = Rect::from_min_max(pos2(f32::NEG_INFINITY, 0.0), pos2(900.0, 90.0));
+        let after = Rect::from_min_max(pos2(f32::NEG_INFINITY, 0.0), pos2(740.0, 90.0));
+        assert_eq!(group_width(true, before, after), 160.0);
+        assert!(!(before.min.x - after.min.x).is_finite(), "the left edge cannot measure it");
+        let before = Rect::from_min_max(pos2(20.0, 0.0), pos2(f32::INFINITY, 90.0));
+        let after = Rect::from_min_max(pos2(180.0, 0.0), pos2(f32::INFINITY, 90.0));
+        assert_eq!(group_width(false, before, after), 160.0);
+    }
 }

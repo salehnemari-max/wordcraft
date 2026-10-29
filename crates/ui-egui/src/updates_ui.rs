@@ -107,17 +107,19 @@ pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
             .collapsible(false)
             .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
             .show(ctx, |ui| {
-                if let Some(msg) = &app.updates_rt.status_message {
-                    ui.label(msg);
-                } else {
-                    ui.label(tl!("Checking for updates…"));
-                }
-                ui.add_space(8.0);
-                ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
-                    if ui.button(tl!("Close")).clicked() {
-                        close = true;
+                crate::rtl::root(ui, |ui| {
+                    if let Some(msg) = &app.updates_rt.status_message {
+                        ui.label(msg);
+                    } else {
+                        ui.label(tl!("Checking for updates…"));
                     }
-                });
+                    ui.add_space(8.0);
+                    ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
+                        if ui.button(tl!("Close")).clicked() {
+                            close = true;
+                        }
+                    });
+                })
             });
         if !open || close {
             app.updates_rt.manual_window_open = false;

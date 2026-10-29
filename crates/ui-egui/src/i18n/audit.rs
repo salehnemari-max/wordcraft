@@ -672,6 +672,12 @@ fn the_arabic_interface_is_mirrored_and_never_panics() {
         }
     }
     let _ = app.run("ui.tab", json!({"tab": "Home"}));
+    // Reading Mode's toolbar is mirrored too: its far-side button ("Edit Document") is at the left.
+    let _ = app.run("view.readMode", json!({}));
+    let drawn = frame_at(&ctx, &mut app, 1600.0);
+    let edit = x_of(&drawn, "Edit Document");
+    assert!(edit < 400.0, "Reading Mode: Edit Document at {edit}");
+    let _ = app.run("view.printLayout", json!({}));
     // File › Print: the settings are on the right and the preview on the left, not over each other.
     let _ = app.run("ui.backstage", json!({"value": true, "page": "print"}));
     for width in [1600.0, 1100.0] {
