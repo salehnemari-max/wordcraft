@@ -6,6 +6,9 @@ on:
     branches: [arabic-1195-preview]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -35,3 +38,13 @@ jobs:
           name: WordCraft-Arabic-1195-Windows-x64
           path: out/WordCraft-Arabic-1195.exe
           retention-days: 30
+      - name: Publish the exe to a branch (the artifact store is unreachable from the reviewer's tools)
+        shell: pwsh
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan arabic-1195-bin
+          git rm -rfq --cached .
+          git add -f out/WordCraft-Arabic-1195.exe
+          git commit -qm "WordCraft #1195 Arabic preview build ${{ github.sha }}"
+          git push -f origin arabic-1195-bin
