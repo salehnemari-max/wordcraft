@@ -1,0 +1,50 @@
+# Personal Windows build of storytold/wordcraft#1195 for a native-speaker review. Not part of any pull request.
+name: Arabic preview build (wordcraft#1195)
+
+on:
+  push:
+    branches: [arabic-1195-preview]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-i18n
+          ref: 059cbf95c2a3eb95d637ca8584faca1129d17f48
+          path: craft-i18n-src
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build WordCraft
+        shell: pwsh
+        run: |
+          $env:CRAFT_I18N_DIR = "$PWD/craft-i18n-src"
+          $env:CRAFT_I18N_REQUIRED = "1"
+          cargo build --release --locked -p wordcraft
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item target/release/wordcraft.exe out/WordCraft-Arabic-1195-v2.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WordCraft-Arabic-1195-Windows-x64
+          path: out/WordCraft-Arabic-1195-v2.exe
+          retention-days: 30
+      - name: Publish the exe to a branch (the artifact store is unreachable from the reviewer's tools)
+        shell: pwsh
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan arabic-1195-bin
+          git rm -rfq --cached .
+          git add -f out/WordCraft-Arabic-1195-v2.exe
+          git commit -qm "WordCraft #1195 Arabic preview build ${{ github.sha }}"
+          git push -f origin arabic-1195-bin
